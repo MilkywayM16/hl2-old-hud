@@ -1,4 +1,6 @@
 # Files to ignore when considering what GIT should commit.
+*.vcxproj.vpc_crc
+*.vcxproj.filters
 
 # Visual Studio 
 *.suo
