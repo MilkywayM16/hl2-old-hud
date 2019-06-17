@@ -22,6 +22,7 @@
 2. Grab the following files from mod_episodic or mod_hl2 folder:
     - scripts\mod_textures.txt
     - scripts\hud_textures.txt
+    - scripts\hudanimations.txt
     - scripts\HudLayout.res
     - materials\sprites\hud1.vmt
     - materials\sprites\hud1.vtf
