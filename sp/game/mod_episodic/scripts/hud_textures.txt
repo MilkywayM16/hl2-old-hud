@@ -38,13 +38,19 @@
 		}
 		"crosshair_left"
 		{
-				"font"		"QuickInfo"
-				"character"	"("
+				"file"		"sprites/qi_center"
+				"x"			"0"
+				"y"			"40"
+				"width"		"28"
+				"height"	"50"
 		}
 		"crosshair_right"
 		{
-				"font"		"QuickInfo"
-				"character"	")"
+				"file"		"sprites/qi_center"
+				"x"			"28"
+				"y"			"40"
+				"width"		"28"
+				"height"	"50"
 		}
 		"crosshair_left_full"
 		{

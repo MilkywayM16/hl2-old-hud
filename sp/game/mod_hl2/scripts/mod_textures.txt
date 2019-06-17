@@ -1,0 +1,134 @@
+"sprites/640_hud"
+{
+	TextureData
+	{
+		"number_0"
+		{
+				"file"		"sprites/hud1"
+				"x"			"0"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_1"
+		{
+				"file"		"sprites/hud1"
+				"x"			"20"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_2"
+		{
+				"file"		"sprites/hud1"
+				"x"			"40"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_3"
+		{
+				"file"		"sprites/hud1"
+				"x"			"60"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_4"
+		{
+				"file"		"sprites/hud1"
+				"x"			"80"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_5"
+		{
+				"file"		"sprites/hud1"
+				"x"			"100"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_6"
+		{
+				"file"		"sprites/hud1"
+				"x"			"120"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_7"
+		{
+				"file"		"sprites/hud1"
+				"x"			"140"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_8"
+		{
+				"file"		"sprites/hud1"
+				"x"			"160"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_9"
+		{
+				"file"		"sprites/hud1"
+				"x"			"180"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_0_faint"
+		{
+				"file"		"sprites/hud1"
+				"x"			"220"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"number_0_faint_2"
+		{
+				"file"		"sprites/hud1"
+				"x"			"200"
+				"y"			"0"
+				"width"		"20"
+				"height"	"28"
+		}
+		"health_label"
+		{
+				"file"		"sprites/hud1"
+				"x"			"160"
+				"y"			"28"
+				"width"		"50"
+				"height"	"14"
+		}
+		"battery_label"
+		{
+				"file"		"sprites/hud1"
+				"x"			"220"
+				"y"			"28"
+				"width"		"40"
+				"height"	"14"	
+		}
+		"ammo_label"
+		{
+				"file"		"sprites/hud1"
+				"x"			"120"
+				"y"			"28"
+				"width"		"40"
+				"height"	"14"
+		}
+		"ammo_bar"
+		{
+				"file"		"sprites/hud1"
+				"x"			"0"
+				"y"			"43"
+				"width"		"11"
+				"height"	"33"
+		}
+	}
+}
