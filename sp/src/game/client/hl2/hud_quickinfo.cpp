@@ -14,14 +14,6 @@
 #include "vgui_controls/Controls.h"
 #include "vgui_controls/Panel.h"
 #include "vgui/ISurface.h"
-#include "../hud_crosshair.h"
-#include "VGuiMatSurface/IMatSystemSurface.h"
-
-#ifdef SIXENSE
-#include "sixense/in_sixense.h"
-#include "view.h"
-int ScreenTransform( const Vector& point, Vector& screen );
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -34,9 +26,10 @@ extern ConVar crosshair;
 
 #define QUICKINFO_EVENT_DURATION	1.0f
 #define	QUICKINFO_BRIGHTNESS_FULL	255
-#define	QUICKINFO_BRIGHTNESS_DIM	64
+#define	QUICKINFO_BRIGHTNESS_DIM	30
 #define	QUICKINFO_FADE_IN_TIME		0.5f
 #define QUICKINFO_FADE_OUT_TIME		2.0f
+#define	QINFO_FADE_TIME				150
 
 /*
 ==================================================
@@ -69,6 +62,8 @@ private:
 
 	float	m_ammoFade;
 	float	m_healthFade;
+	float	m_fDamageFade;
+	float	m_fFade;
 
 	bool	m_warnAmmo;
 	bool	m_warnHealth;
@@ -105,7 +100,6 @@ void CHUDQuickInfo::ApplySchemeSettings( IScheme *scheme )
 	BaseClass::ApplySchemeSettings( scheme );
 
 	SetPaintBackgroundEnabled( false );
-	SetForceStereoRenderToFrameBuffer( true );
 }
 
 
@@ -113,6 +107,7 @@ void CHUDQuickInfo::Init( void )
 {
 	m_ammoFade		= 0.0f;
 	m_healthFade	= 0.0f;
+	m_fFade			= 0.0f;
 
 	m_lastAmmo		= 0;
 	m_lastHealth	= 100;
@@ -239,43 +234,58 @@ void CHUDQuickInfo::OnThink()
 
 void CHUDQuickInfo::Paint()
 {
+	CHudTexture	*icon_c = gHUD.GetIcon("crosshair");
+	CHudTexture	*icon_rb = gHUD.GetIcon("crosshair_right");
+	CHudTexture	*icon_lb = gHUD.GetIcon("crosshair_left");
+
+	if (!icon_c || !icon_rb || !icon_lb)
+		return;
+
+	int		xCenter = (ScreenWidth() / 2) - icon_c->Width() / 2;
+	int		yCenter = (ScreenHeight() / 2) - icon_c->Height() / 2;
+	//int		scalar;
+	float	scalar = 1.0f; //138.0f/255.0f;
+
 	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
-	if ( player == NULL )
+
+	if (player == NULL)
 		return;
 
 	C_BaseCombatWeapon *pWeapon = GetActiveWeapon();
-	if ( pWeapon == NULL )
+
+	if (pWeapon == NULL)
 		return;
 
-	float fX, fY;
-	bool bBehindCamera = false;
-	CHudCrosshair::GetDrawPosition( &fX, &fY, &bBehindCamera );
+	//Get our values
+	int	health = player->GetHealth();
+	int	ammo = pWeapon->Clip1();
 
-	// if the crosshair is behind the camera, don't draw it
-	if( bBehindCamera )
-		return;
+	if (m_fDamageFade > 0.0f)
+	{
+		m_fDamageFade -= (gpGlobals->frametime * 200.0f);
+	}
 
-	int		xCenter	= (int)fX;
-	int		yCenter = (int)fY - m_icon_lb->Height() / 2;
-
-	float	scalar  = 138.0f/255.0f;
-	
-	// Check our health for a warning
-	int	health	= player->GetHealth();
-	if ( health != m_lastHealth )
+	//Check our health for a warning
+	if (health != m_lastHealth)
 	{
 		UpdateEventTime();
+		if (health < m_lastHealth)
+		{
+			m_fDamageFade = QINFO_FADE_TIME;
+		}
+
+		m_fFade = QINFO_FADE_TIME;
 		m_lastHealth = health;
 
-		if ( health <= HEALTH_WARNING_THRESHOLD )
+		if (health <= HEALTH_WARNING_THRESHOLD)
 		{
-			if ( m_warnHealth == false )
+			if (m_warnHealth == false)
 			{
 				m_healthFade = 255;
 				m_warnHealth = true;
-				
+
 				CLocalPlayerFilter filter;
-				C_BaseEntity::EmitSound( filter, SOUND_FROM_LOCAL_PLAYER, "HUDQuickInfo.LowHealth" );
+				C_BaseEntity::EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "HUDQuickInfo.LowHealth");
 			}
 		}
 		else
@@ -285,25 +295,21 @@ void CHUDQuickInfo::Paint()
 	}
 
 	// Check our ammo for a warning
-	int	ammo = pWeapon->Clip1();
-	if ( ammo != m_lastAmmo )
+	if (ammo != m_lastAmmo)
 	{
 		UpdateEventTime();
-		m_lastAmmo	= ammo;
+		m_fFade = QINFO_FADE_TIME;
+		m_lastAmmo = ammo;
 
-		// Find how far through the current clip we are
-		float ammoPerc = (float) ammo / (float) pWeapon->GetMaxClip1();
-
-		// Warn if we're below a certain percentage of our clip's size
-		if (( pWeapon->GetMaxClip1() > 1 ) && ( ammoPerc <= ( 1.0f - CLIP_PERC_THRESHOLD )))
+		if (((float)ammo / (float)pWeapon->GetMaxClip1()) <= (1.0f - CLIP_PERC_THRESHOLD))
 		{
-			if ( m_warnAmmo == false )
+			if (m_warnAmmo == false)
 			{
 				m_ammoFade = 255;
 				m_warnAmmo = true;
 
 				CLocalPlayerFilter filter;
-				C_BaseEntity::EmitSound( filter, SOUND_FROM_LOCAL_PLAYER, "HUDQuickInfo.LowAmmo" );
+				C_BaseEntity::EmitSound(filter, SOUND_FROM_LOCAL_PLAYER, "HUDQuickInfo.LowAmmo");
 			}
 		}
 		else
@@ -314,33 +320,22 @@ void CHUDQuickInfo::Paint()
 
 	Color clrNormal = gHUD.m_clrNormal;
 	clrNormal[3] = 255 * scalar;
-	m_icon_c->DrawSelf( xCenter, yCenter, clrNormal );
+	icon_c->DrawSelf(xCenter, yCenter, clrNormal);
 
-	if( IsX360() )
+	int	sinScale = (int)(fabs(sin(gpGlobals->curtime*8.0f)) * 128.0f);
+
+	//Update our health
+	if (m_healthFade > 0.0f)
 	{
-		// Because the fixed reticle draws on half-texels, this rather unsightly hack really helps
-		// center the appearance of the quickinfo on 360 displays.
-		xCenter += 1;
-	}
-
-	if ( !hud_quickinfo.GetInt() )
-		return;
-
-	int	sinScale = (int)( fabs(sin(gpGlobals->curtime*8.0f)) * 128.0f );
-
-	// Update our health
-	if ( m_healthFade > 0.0f )
-	{
-		DrawWarning( xCenter - (m_icon_lb->Width() * 2), yCenter, m_icon_lb, m_healthFade );
+		DrawWarning(xCenter - 10, yCenter - 5, icon_lb, m_healthFade);
 	}
 	else
 	{
-		float healthPerc = (float) health / 100.0f;
-		healthPerc = clamp( healthPerc, 0.0f, 1.0f );
+		float	healthPerc = (float)health / 100.0f;
 
 		Color healthColor = m_warnHealth ? gHUD.m_clrCaution : gHUD.m_clrNormal;
-		
-		if ( m_warnHealth )
+
+		if (m_warnHealth)
 		{
 			healthColor[3] = 255 * sinScale;
 		}
@@ -348,32 +343,36 @@ void CHUDQuickInfo::Paint()
 		{
 			healthColor[3] = 255 * scalar;
 		}
-		
-		gHUD.DrawIconProgressBar( xCenter - (m_icon_lb->Width() * 2), yCenter, m_icon_lb, m_icon_lbe, ( 1.0f - healthPerc ), healthColor, CHud::HUDPB_VERTICAL );
+
+		int width = icon_lb->Width();
+		int height = icon_lb->Height();
+
+		gHUD.DrawIconProgressBar(xCenter - 10, yCenter - 5, width, height, icon_lb, (1.0f - healthPerc), healthColor, CHud::HUDPB_VERTICAL);
 	}
 
-	// Update our ammo
-	if ( m_ammoFade > 0.0f )
+	//Update our ammo
+	if (m_ammoFade > 0.0f)
 	{
-		DrawWarning( xCenter + m_icon_rb->Width(), yCenter, m_icon_rb, m_ammoFade );
+		DrawWarning(xCenter + icon_rb->Width() - 6, yCenter - 5, icon_rb, m_ammoFade);
 	}
 	else
 	{
-		float ammoPerc;
+		float ammoPerc;// = 1.0f - ((float)ammo / (float)pWeapon->GetMaxClip1());
 
-		if ( pWeapon->GetMaxClip1() <= 0 )
+		if (pWeapon->GetMaxClip1() <= 0)
 		{
 			ammoPerc = 0.0f;
 		}
 		else
 		{
-			ammoPerc = 1.0f - ( (float) ammo / (float) pWeapon->GetMaxClip1() );
-			ammoPerc = clamp( ammoPerc, 0.0f, 1.0f );
+			ammoPerc = 1.0f - ((float)ammo / (float)pWeapon->GetMaxClip1());
+			ammoPerc = clamp(ammoPerc, 0.0f, 1.0f);
 		}
 
+
 		Color ammoColor = m_warnAmmo ? gHUD.m_clrCaution : gHUD.m_clrNormal;
-		
-		if ( m_warnAmmo )
+
+		if (m_warnAmmo)
 		{
 			ammoColor[3] = 255 * sinScale;
 		}
@@ -381,8 +380,11 @@ void CHUDQuickInfo::Paint()
 		{
 			ammoColor[3] = 255 * scalar;
 		}
-		
-		gHUD.DrawIconProgressBar( xCenter + m_icon_rb->Width(), yCenter, m_icon_rb, m_icon_rbe, ammoPerc, ammoColor, CHud::HUDPB_VERTICAL );
+
+		int width = icon_rb->Width();
+		int height = icon_rb->Height();
+
+		gHUD.DrawIconProgressBar( xCenter + icon_rb->Width() - 6, yCenter - 5, width, height, icon_rb, ammoPerc, ammoColor, CHud::HUDPB_VERTICAL );
 	}
 }
 

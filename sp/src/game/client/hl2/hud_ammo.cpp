@@ -8,7 +8,9 @@
 #include "hud.h"
 #include "hudelement.h"
 #include "hud_macros.h"
+#include "ammodef.h"
 #include "hud_numericdisplay.h"
+#include "hud_bitmapnumericdisplay.h"
 #include "iclientmode.h"
 #include "iclientvehicle.h"
 #include <vgui_controls/AnimationController.h>
@@ -24,9 +26,9 @@ using namespace vgui;
 //-----------------------------------------------------------------------------
 // Purpose: Displays current ammunition level
 //-----------------------------------------------------------------------------
-class CHudAmmo : public CHudNumericDisplay, public CHudElement
+class CHudAmmo : public CHudBitmapNumericDisplay, public CHudElement
 {
-	DECLARE_CLASS_SIMPLE( CHudAmmo, CHudNumericDisplay );
+	DECLARE_CLASS_SIMPLE(CHudAmmo, CHudBitmapNumericDisplay);
 
 public:
 	CHudAmmo( const char *pElementName );
@@ -44,7 +46,7 @@ protected:
 	void UpdateAmmoDisplays();
 	void UpdatePlayerAmmo( C_BasePlayer *player );
 	void UpdateVehicleAmmo( C_BasePlayer *player, IClientVehicle *pVehicle );
-	
+
 private:
 	CHandle< C_BaseCombatWeapon > m_hCurrentActiveWeapon;
 	CHandle< C_BaseEntity > m_hCurrentVehicle;
@@ -75,18 +77,19 @@ void CHudAmmo::Init( void )
 {
 	m_iAmmo		= -1;
 	m_iAmmo2	= -1;
-	
+
 	m_iconPrimaryAmmo = NULL;
 
 	wchar_t *tempString = g_pVGuiLocalize->Find("#Valve_Hud_AMMO");
 	if (tempString)
 	{
-		SetLabelText(tempString);
+		//SetLabelText(tempString);
 	}
 	else
 	{
-		SetLabelText(L"AMMO");
+		//SetLabelText(L"AMMO");
 	}
+	SetLabel(3);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,13 +130,14 @@ void CHudAmmo::UpdatePlayerAmmo( C_BasePlayer *player )
 	if ( !wpn || !player || !wpn->UsesPrimaryAmmo() )
 	{
 		hudlcd->SetGlobalStat( "(ammo_primary)", "n/a" );
-        hudlcd->SetGlobalStat( "(ammo_secondary)", "n/a" );
+		hudlcd->SetGlobalStat( "(ammo_secondary)", "n/a" );
 
 		SetPaintEnabled(false);
 		SetPaintBackgroundEnabled(false);
 		return;
 	}
 
+	SetIsAmmo(true);
 	SetPaintEnabled(true);
 	SetPaintBackgroundEnabled(true);
 
@@ -338,15 +342,15 @@ void CHudAmmo::Paint( void )
 #ifndef HL2MP
 	if ( m_hCurrentVehicle == NULL && m_iconPrimaryAmmo )
 	{
-		int nLabelHeight;
-		int nLabelWidth;
-		surface()->GetTextSize( m_hTextFont, m_LabelText, nLabelWidth, nLabelHeight );
+		//int nLabelHeight;
+		//int nLabelWidth;
+		//surface()->GetTextSize( m_hTextFont, m_LabelText, nLabelWidth, nLabelHeight );
 
-		// Figure out where we're going to put this
-		int x = text_xpos + ( nLabelWidth - m_iconPrimaryAmmo->Width() ) / 2;
-		int y = text_ypos - ( nLabelHeight + ( m_iconPrimaryAmmo->Height() / 2 ) );
-		
-		m_iconPrimaryAmmo->DrawSelf( x, y, GetFgColor() );
+		//// Figure out where we're going to put this
+		//int x = text_xpos + ( nLabelWidth - m_iconPrimaryAmmo->Width() ) / 2;
+		//int y = text_ypos - ( nLabelHeight + ( m_iconPrimaryAmmo->Height() / 2 ) );
+		//
+		//m_iconPrimaryAmmo->DrawSelf( x, y, GetFgColor() );
 	}
 #endif // HL2MP
 }
@@ -354,9 +358,9 @@ void CHudAmmo::Paint( void )
 //-----------------------------------------------------------------------------
 // Purpose: Displays the secondary ammunition level
 //-----------------------------------------------------------------------------
-class CHudSecondaryAmmo : public CHudNumericDisplay, public CHudElement
+class CHudSecondaryAmmo : public CHudBitmapNumericDisplay, public CHudElement
 {
-	DECLARE_CLASS_SIMPLE( CHudSecondaryAmmo, CHudNumericDisplay );
+	DECLARE_CLASS_SIMPLE(CHudSecondaryAmmo, CHudBitmapNumericDisplay);
 
 public:
 	CHudSecondaryAmmo( const char *pElementName ) : BaseClass( NULL, "HudAmmoSecondary" ), CHudElement( pElementName )
@@ -372,11 +376,11 @@ public:
 		wchar_t *tempString = g_pVGuiLocalize->Find("#Valve_Hud_AMMO_ALT");
 		if (tempString)
 		{
-			SetLabelText(tempString);
+			//SetLabelText(tempString);
 		}
 		else
 		{
-			SetLabelText(L"ALT");
+			//SetLabelText(L"ALT");
 		}
 #endif // HL2MP
 	}
@@ -415,7 +419,7 @@ public:
 		BaseClass::Reset();
 		m_iAmmo = 0;
 		m_hCurrentActiveWeapon = NULL;
-		SetAlpha( 0 );
+		//SetAlpha( 0 );
 		UpdateAmmoState();
 	}
 
@@ -426,15 +430,15 @@ public:
 #ifndef HL2MP
 		if ( m_iconSecondaryAmmo )
 		{
-			int nLabelHeight;
-			int nLabelWidth;
-			surface()->GetTextSize( m_hTextFont, m_LabelText, nLabelWidth, nLabelHeight );
+			//int nLabelHeight;
+			//int nLabelWidth;
+			//surface()->GetTextSize( m_hTextFont, m_LabelText, nLabelWidth, nLabelHeight );
 
-			// Figure out where we're going to put this
-			int x = text_xpos + ( nLabelWidth - m_iconSecondaryAmmo->Width() ) / 2;
-			int y = text_ypos - ( nLabelHeight + ( m_iconSecondaryAmmo->Height() / 2 ) );
+			//// Figure out where we're going to put this
+			//int x = text_xpos + ( nLabelWidth - m_iconSecondaryAmmo->Width() ) / 2;
+			//int y = text_ypos - ( nLabelHeight + ( m_iconSecondaryAmmo->Height() / 2 ) );
 
-			m_iconSecondaryAmmo->DrawSelf( x, y, GetFgColor() );
+			//m_iconSecondaryAmmo->DrawSelf( x, y, GetFgColor() );
 		}
 #endif // HL2MP
 	}
@@ -470,6 +474,8 @@ protected:
 
 		if (player && wpn && wpn->UsesSecondaryAmmo())
 		{
+			SetHalfSize(true);
+			SetNumZeros(2);
 			SetAmmo(player->GetAmmoCount(wpn->GetSecondaryAmmoType()));
 		}
 
@@ -486,12 +492,12 @@ protected:
 				g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("WeaponDoesNotUseSecondaryAmmo");
 			}
 			m_hCurrentActiveWeapon = wpn;
-			
+
 			// Get the icon we should be displaying
-			m_iconSecondaryAmmo = gWR.GetAmmoIconFromWeapon( m_hCurrentActiveWeapon->GetSecondaryAmmoType() );
+			//m_iconSecondaryAmmo = gWR.GetAmmoIconFromWeapon( m_hCurrentActiveWeapon->GetSecondaryAmmoType() );
 		}
 	}
-	
+
 private:
 	CHandle< C_BaseCombatWeapon > m_hCurrentActiveWeapon;
 	CHudTexture *m_iconSecondaryAmmo;

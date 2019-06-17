@@ -14,7 +14,7 @@
 #include "hud.h"
 #include "hudelement.h"
 #include "hud_macros.h"
-#include "hud_numericdisplay.h"
+#include "hud_bitmapnumericdisplay.h"
 #include "iclientmode.h"
 
 #include "vgui_controls/AnimationController.h"
@@ -28,9 +28,9 @@
 //-----------------------------------------------------------------------------
 // Purpose: Displays suit power (armor) on hud
 //-----------------------------------------------------------------------------
-class CHudBattery : public CHudNumericDisplay, public CHudElement
+class CHudBattery : public CHudBitmapNumericDisplay, public CHudElement
 {
-	DECLARE_CLASS_SIMPLE( CHudBattery, CHudNumericDisplay );
+	DECLARE_CLASS_SIMPLE(CHudBattery, CHudBitmapNumericDisplay);
 
 public:
 	CHudBattery( const char *pElementName );
@@ -40,7 +40,7 @@ public:
 	void OnThink( void );
 	void MsgFunc_Battery(bf_read &msg );
 	bool ShouldDraw();
-	
+
 private:
 	int		m_iBat;	
 	int		m_iNewBat;
@@ -73,8 +73,9 @@ void CHudBattery::Init( void )
 //-----------------------------------------------------------------------------
 void CHudBattery::Reset( void )
 {
-	SetLabelText(g_pVGuiLocalize->Find("#Valve_Hud_SUIT"));
+	//SetLabelText(g_pVGuiLocalize->Find("#Valve_Hud_SUIT"));
 	SetDisplayValue(m_iBat);
+	SetLabel(2);
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +108,7 @@ void CHudBattery::OnThink( void )
 
 	if ( !m_iNewBat )
 	{
-	 	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitPowerZero");
+		//g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("SuitPowerZero");
 	}
 	else if ( m_iNewBat < m_iBat )
 	{
