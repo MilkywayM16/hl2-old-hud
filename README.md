@@ -8,7 +8,7 @@
 - new console variable hud_draw_backgrounds to show the background to the hud elements
 
 ## Changes to hud_health.cpp, hud_ammo.cpp, hud_battery.cpp
-- changes all of these hud elements to use CHudBitmapNumericDisplay instead of CHudNumericDisplay (old font based number rendering)
+- changes all of these hud elements to use CHudBitmapNumericDisplay instead of CHudNumericDisplay (font based number rendering)
 
 ## Changes to hud_quickinfo.cpp
 - changed quickinfo around crosshair to the sprite based one from the leak
